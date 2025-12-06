@@ -224,8 +224,10 @@ function loadGame() {
 
 // リセット機能
 function resetGame() {
-    if(confirm("最初からやり直しますか？")) {
+    if(confirm("最初からやり直しますか？\n（現在の進行状況はすべて失われます）")) {
+        // セーブデータのキーを削除
         localStorage.removeItem("gameBookSave");
-        location.reload();
+        // ページ全体を再読み込み
+        location.reload(); 
     }
 }
