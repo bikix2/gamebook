@@ -77,6 +77,12 @@ function showParagraph(id) {
 // サイコロ・判定機能
 // ===================================
 
+function roll2D6() {
+    const d1 = Math.floor(Math.random() * 6) + 1;
+    const d2 = Math.floor(Math.random() * 6) + 1;
+    return [d1, d2, d1 + d2];
+}
+
 // サイコロの目をグラフィックに変換する関数
 function getDiceFace(num) {
     const faces = {
@@ -85,35 +91,28 @@ function getDiceFace(num) {
     return faces[num];
 }
 
-// サイコロのアニメーションと結果表示
+// アニメーションと結果表示
 function displayAnimatedDice(d1, d2, callback) {
     const dice1El = document.getElementById('dice-graphic-1');
     const dice2El = document.getElementById('dice-graphic-2');
     const resultEl = document.getElementById('dice-result');
 
-    // アニメーションクラスを付与
     dice1El.classList.add('rolling');
     dice2El.classList.add('rolling');
     resultEl.textContent = '結果: 振る...';
 
-    // 0.8秒後にアニメーションを停止し、結果を表示
     setTimeout(() => {
         dice1El.classList.remove('rolling');
         dice2El.classList.remove('rolling');
         
+        // 実際の出目のグラフィックをセット
         dice1El.textContent = getDiceFace(d1);
         dice2El.textContent = getDiceFace(d2);
-        resultEl.textContent = `結果: ${d1 + d2} (${d1} + ${d2})`;
+        // 戦闘・判定時には結果を詳細に出さない
+        resultEl.textContent = `結果: ${d1 + d2}`; 
         
         if (callback) callback();
     }, 800);
-}
-
-// サイコロを2つ振り、結果の配列を返すヘルパー関数 (アニメーションは呼ばない)
-function roll2D6() {
-    const d1 = Math.floor(Math.random() * 6) + 1;
-    const d2 = Math.floor(Math.random() * 6) + 1;
-    return [d1, d2, d1 + d2];
 }
 
 // 手動サイコロボタン用
@@ -126,18 +125,15 @@ function rollDice() {
 function performTest(type, successId, failId) {
     const [d1, d2, diceRoll] = roll2D6();
 
-    // まずアニメーションを実行し、完了後に判定を行う
     displayAnimatedDice(d1, d2, () => {
         let resultMessage = `${type}テスト実施: サイコロの目 ${diceRoll}\nあなたの${type}点 (${heroStats[type]}) と比較します。\n\n`;
 
         if (diceRoll <= heroStats[type]) {
-            // 成功
             resultMessage += `結果: **成功**！ (${diceRoll} <= ${heroStats[type]})\n\nパラグラフ ${successId} へ進みます。`;
             document.getElementById("story-text").textContent = resultMessage;
             
             setTimeout(() => showParagraph(successId), 1500); 
         } else {
-            // 失敗
             resultMessage += `結果: **失敗**... (${diceRoll} > ${heroStats[type]})\n\nパラグラフ ${failId} へ進みます。`;
             document.getElementById("story-text").textContent = resultMessage;
             
@@ -180,8 +176,8 @@ function performCombatRound(winId) {
     const [enemy_d1, enemy_d2, enemyRoll] = roll2D6();
     const enemyAttackScore = enemyRoll + currentEnemy.skill;
     
-    // 戦闘ラウンドのアニメーションを表示
-    displayAnimatedDice(heroRoll, enemyRoll, () => { // 簡易表示
+    // 戦闘ラウンドのアニメーションを表示 (戦闘ラウンドのサイコロ結果を表示)
+    displayAnimatedDice(heroRoll, enemyRoll, () => { 
         log.textContent += `\n[ラウンド開始]\n`;
         log.textContent += `  あなた: ${heroRoll} + ${heroStats.skill} = ${heroAttackScore}\n`;
         log.textContent += `  敵: ${enemyRoll} + ${currentEnemy.skill} = ${enemyAttackScore}\n`;
@@ -189,12 +185,15 @@ function performCombatRound(winId) {
         if (heroAttackScore > enemyAttackScore) {
             currentEnemy.stamina -= 2;
             log.textContent += `あなたは敵を打ち破った！ 敵の体力 -2。\n`;
-            navigator.vibrate(100); // プレイヤー勝利時に軽い振動
+            navigator.vibrate(100); 
         } else if (enemyAttackScore > heroAttackScore) {
             heroStats.stamina -= 2;
             log.textContent += `敵の攻撃が命中！ あなたの体力 -2。\n`;
-            updateStatsDisplay();
-            navigator.vibrate(300); // プレイヤー被弾時に強い振動
+            
+            // ★★★ ここで体力の表示を更新します ★★★
+            updateStatsDisplay(); 
+            
+            navigator.vibrate(300); 
         } else {
             log.textContent += `両者の攻撃は相殺した（引き分け）。\n`;
         }
