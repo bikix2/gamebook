@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>冒険の書</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="status-bar">
+        <div class="stat-box">技術点<br><span id="skill">0</span></div>
+        <div class="stat-box">体力点<br><span id="stamina">0</span></div>
+        <div class="stat-box">運点<br><span id="luck">0</span></div>
+    </div>
+
+    <div id="game-container">
+        <div id="story-text">
+            ここに物語が表示されます...
+        </div>
+
+        <div id="choices-container">
+            </div>
+
+        <hr>
+
+        <div id="tools-area">
+            <button onclick="rollDice()" class="tool-btn">🎲 サイコロを振る</button>
+            <div id="dice-result">結果: -</div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: right;">
+            <button onclick="resetGame()" style="font-size: 12px;">最初からやり直す</button>
+        </div>
+    </div>
+
+    <script src="story_data.js"></script>
+    <script src="main.js"></script>
+</body>
+</html>
