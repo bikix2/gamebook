@@ -79,6 +79,38 @@ body {
     margin-top: 30px;
 }
 
+/* --- サイコロアニメーションの追加 --- */
+#dice-graphic-area {
+    font-size: 40px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+#dice-graphic-area span {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1em;
+    text-align: center;
+    border: 2px solid #2e2b25;
+    border-radius: 5px;
+    background-color: white;
+    box-shadow: 2px 2px 5px rgba(0,0,0,0.2);
+}
+
+@keyframes diceRoll {
+    0% { transform: rotate(0deg) scale(1); }
+    50% { transform: rotate(180deg) scale(1.2); color: red; }
+    100% { transform: rotate(360deg) scale(1); }
+}
+
+.rolling {
+    animation: diceRoll 0.2s infinite alternate; 
+}
+/* ---------------------------------- */
+
 .tool-btn {
     padding: 10px 20px;
     font-size: 16px;
