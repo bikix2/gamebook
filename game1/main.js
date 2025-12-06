@@ -1,4 +1,4 @@
-// 初期ステータス（本来はダイスで決めることも可能）
+// 初期ステータス（ロード処理で初期化されるまでの一時的な初期値）
 let heroStats = {
     skill: 10,
     stamina: 20,
@@ -157,7 +157,7 @@ function performCombatRound(winId) {
     } else if (heroStats.stamina <= 0) {
         log.textContent += `\n--- 敗北... あなたは力尽きました。 ---\n`;
         attackBtn.textContent = "ゲームオーバー (リセットしてください)";
-        attackBtn.onclick = null; // ゲームオーバー後はリセットボタンを使う
+        attackBtn.onclick = null;
         attackBtn.className = "choice-btn fail";
     } else {
         log.textContent += `  現在の体力: あなた(${heroStats.stamina}) / 敵(${currentEnemy.stamina})\n`;
@@ -181,7 +181,6 @@ function saveGame() {
         id: currentId,
         stats: heroStats
     };
-    // ここで JSON.stringify が失敗するとセーブされないため、try-catchを追加
     try {
         localStorage.setItem("gameBookSave", JSON.stringify(saveData));
     } catch (e) {
@@ -194,7 +193,7 @@ function loadGame() {
     const saved = localStorage.getItem("gameBookSave");
     const startPoint = (typeof gameConfig !== 'undefined' && gameConfig.startId) ? gameConfig.startId : "1";
 
-    // 初期ステータスの設定（リセット後の初期化用）
+    // 初期ステータスの定義 (リセット/セーブデータなしの場合に使用)
     const initialStats = { skill: 10, stamina: 20, luck: 10 };
     
     if (saved) {
@@ -205,7 +204,8 @@ function loadGame() {
     } else {
         // セーブがない場合は設定されたスタート地点と初期ステータスに戻す
         currentId = startPoint;
-        heroStats = initialStats;
+        // ★グローバル変数 heroStats を初期化する
+        Object.assign(heroStats, initialStats);
     }
 }
 
@@ -214,7 +214,13 @@ function resetGame() {
     if(confirm("最初からやり直しますか？\n（現在の進行状況はすべて失われます）")) {
         // 1. セーブデータを削除
         localStorage.removeItem("gameBookSave");
-        // 2. ページの再読み込みを実行
+        
+        // 2. ★次のロードに備えてグローバル変数 heroStats と currentId を初期化
+        //   （loadGame()が実行される前に、現在の値を強制的に初期値に戻しておく）
+        Object.assign(heroStats, { skill: 10, stamina: 20, luck: 10 });
+        currentId = (typeof gameConfig !== 'undefined' && gameConfig.startId) ? gameConfig.startId : "1";
+
+        // 3. ページの再読み込みを実行
         location.reload(); 
     }
 }
