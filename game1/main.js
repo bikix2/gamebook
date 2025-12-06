@@ -27,10 +27,8 @@ window.onload = function() {
 // ===================================
 
 function showParagraph(id) {
-    // 現在のパラグラフを更新し、オートセーブ
     currentId = id;
     saveGame();
-    // 戦闘状態をリセット
     currentEnemy = null; 
 
     const data = storyData[id];
@@ -38,13 +36,12 @@ function showParagraph(id) {
     const choicesField = document.getElementById("choices-container");
     const combatLog = document.getElementById("combat-log");
 
-    // ページトップへ
     window.scrollTo(0, 0);
 
     if (data) {
         textField.textContent = data.text;
         choicesField.innerHTML = "";
-        combatLog.innerHTML = ""; // 戦闘ログをクリア
+        combatLog.innerHTML = ""; 
 
         if (data.choices && data.choices.length > 0) {
             data.choices.forEach(choice => {
@@ -52,20 +49,15 @@ function showParagraph(id) {
                 btn.className = "choice-btn";
                 btn.textContent = choice.text;
 
-                // 選択肢に特殊な命令があるかチェック
                 if (choice.action === "skillTest") {
-                    // 技術点テストボタン
                     btn.onclick = () => performTest('skill', choice.targetSuccess, choice.targetFail);
                 } else if (choice.action === "luckTest") {
-                    // 運点テストボタン
                     btn.onclick = () => performTest('luck', choice.targetSuccess, choice.targetFail);
                 } else if (choice.action === "startCombat") {
-                    // 戦闘開始ボタン
                     currentEnemy = { skill: choice.enemySkill, stamina: choice.enemyStamina, name: choice.enemyName };
                     btn.textContent = `${choice.enemyName}と戦う (技術点: ${currentEnemy.skill}, 体力点: ${currentEnemy.stamina})`;
                     btn.onclick = () => startCombat(choice.targetSuccess);
                 } else {
-                    // 通常のページ遷移
                     btn.onclick = () => showParagraph(choice.target);
                 }
                 
@@ -83,31 +75,25 @@ function showParagraph(id) {
 // 判定機能
 // ===================================
 
-// サイコロを2つ振るヘルパー関数
 function roll2D6() {
     const d1 = Math.floor(Math.random() * 6) + 1;
     const d2 = Math.floor(Math.random() * 6) + 1;
     return d1 + d2;
 }
 
-// 技術点テスト or 運点テスト
 function performTest(type, successId, failId) {
     const diceRoll = roll2D6();
     let resultMessage = `${type}テスト実施: サイコロの目 ${diceRoll}\nあなたの${type}点 (${heroStats[type]}) と比較します。\n\n`;
 
     if (diceRoll <= heroStats[type]) {
-        // 成功
         resultMessage += `結果: **成功**！ (${diceRoll} <= ${heroStats[type]})\n\nパラグラフ ${successId} へ進みます。`;
         document.getElementById("story-text").textContent = resultMessage;
         
-        // 1.5秒後に移動
         setTimeout(() => showParagraph(successId), 1500); 
     } else {
-        // 失敗
         resultMessage += `結果: **失敗**... (${diceRoll} > ${heroStats[type]})\n\nパラグラフ ${failId} へ進みます。`;
         document.getElementById("story-text").textContent = resultMessage;
         
-        // 1.5秒後に移動
         setTimeout(() => showParagraph(failId), 1500); 
     }
 }
@@ -123,12 +109,10 @@ function startCombat(winId) {
     }
     
     document.getElementById("story-text").textContent = `${currentEnemy.name}との戦闘を開始します！`;
-    document.getElementById("choices-container").innerHTML = ""; // 選択肢をクリア
+    document.getElementById("choices-container").innerHTML = "";
     
-    // 戦闘ログ表示エリアを確保
     document.getElementById("choices-container").innerHTML = '<div id="combat-log"></div>';
     
-    // 戦闘開始ボタンを設置
     const attackBtn = document.createElement("button");
     attackBtn.className = "choice-btn";
     attackBtn.textContent = "🗡 攻撃ラウンドを開始する";
@@ -143,11 +127,9 @@ function performCombatRound(winId) {
     const log = document.getElementById("combat-log");
     const attackBtn = document.querySelector(".choice-btn");
 
-    // 攻撃処理（自分）
     const heroRoll = roll2D6();
     const heroAttackScore = heroRoll + heroStats.skill;
     
-    // 攻撃処理（敵）
     const enemyRoll = roll2D6();
     const enemyAttackScore = enemyRoll + currentEnemy.skill;
 
@@ -156,20 +138,16 @@ function performCombatRound(winId) {
     log.textContent += `  敵: ${enemyRoll} + ${currentEnemy.skill} = ${enemyAttackScore}\n`;
 
     if (heroAttackScore > enemyAttackScore) {
-        // プレイヤー勝利
-        currentEnemy.stamina -= 2; // 敵にダメージ2
+        currentEnemy.stamina -= 2;
         log.textContent += `あなたは敵を打ち破った！ 敵の体力 -2。\n`;
     } else if (enemyAttackScore > heroAttackScore) {
-        // 敵勝利
-        heroStats.stamina -= 2; // プレイヤーにダメージ2
+        heroStats.stamina -= 2;
         log.textContent += `敵の攻撃が命中！ あなたの体力 -2。\n`;
-        updateStatsDisplay(); // ステータスバーを更新
+        updateStatsDisplay();
     } else {
-        // 引き分け
         log.textContent += `両者の攻撃は相殺した（引き分け）。\n`;
     }
 
-    // 勝敗判定
     if (currentEnemy.stamina <= 0) {
         log.textContent += `\n--- 勝利！ ${currentEnemy.name}を倒しました。 ---\n`;
         attackBtn.textContent = "戦闘終了 (次へ進む)";
@@ -178,21 +156,19 @@ function performCombatRound(winId) {
 
     } else if (heroStats.stamina <= 0) {
         log.textContent += `\n--- 敗北... あなたは力尽きました。 ---\n`;
-        attackBtn.textContent = "ゲームオーバー (パラグラフ1へ)";
-        attackBtn.onclick = () => { heroStats.stamina = 1; showParagraph('1'); }; // 体力を1に戻して開始地点へ
+        attackBtn.textContent = "ゲームオーバー (リセットしてください)";
+        attackBtn.onclick = null; // ゲームオーバー後はリセットボタンを使う
         attackBtn.className = "choice-btn fail";
     } else {
-        // 戦闘継続
         log.textContent += `  現在の体力: あなた(${heroStats.stamina}) / 敵(${currentEnemy.stamina})\n`;
     }
-    log.scrollTop = log.scrollHeight; // ログを最新にスクロール
+    log.scrollTop = log.scrollHeight;
 }
 
 // ===================================
-// 補助機能
+// 補助機能・セーブ/ロード
 // ===================================
 
-// ステータス表示を更新
 function updateStatsDisplay() {
     document.getElementById("skill").textContent = heroStats.skill;
     document.getElementById("stamina").textContent = heroStats.stamina;
@@ -205,29 +181,40 @@ function saveGame() {
         id: currentId,
         stats: heroStats
     };
-    localStorage.setItem("gameBookSave", JSON.stringify(saveData));
-}
-
-// ロード機能
-function loadGame() {
-    const saved = localStorage.getItem("gameBookSave");
-    const startPoint = (typeof gameConfig !== 'undefined') ? gameConfig.startId : "1";
-
-    if (saved) {
-        const data = JSON.parse(saved);
-        currentId = data.id;
-        heroStats = data.stats;
-    } else {
-        currentId = startPoint;
+    // ここで JSON.stringify が失敗するとセーブされないため、try-catchを追加
+    try {
+        localStorage.setItem("gameBookSave", JSON.stringify(saveData));
+    } catch (e) {
+        console.error("セーブに失敗しました:", e);
     }
 }
 
-// リセット機能
+// ロード機能 (リセット時に初期値に戻す処理を強化)
+function loadGame() {
+    const saved = localStorage.getItem("gameBookSave");
+    const startPoint = (typeof gameConfig !== 'undefined' && gameConfig.startId) ? gameConfig.startId : "1";
+
+    // 初期ステータスの設定（リセット後の初期化用）
+    const initialStats = { skill: 10, stamina: 20, luck: 10 };
+    
+    if (saved) {
+        const data = JSON.parse(saved);
+        currentId = data.id;
+        // ロードしたステータスを適用
+        heroStats = data.stats; 
+    } else {
+        // セーブがない場合は設定されたスタート地点と初期ステータスに戻す
+        currentId = startPoint;
+        heroStats = initialStats;
+    }
+}
+
+// リセット機能 (location.reload()前に確実に削除)
 function resetGame() {
     if(confirm("最初からやり直しますか？\n（現在の進行状況はすべて失われます）")) {
-        // セーブデータのキーを削除
+        // 1. セーブデータを削除
         localStorage.removeItem("gameBookSave");
-        // ページ全体を再読み込み
+        // 2. ページの再読み込みを実行
         location.reload(); 
     }
 }
